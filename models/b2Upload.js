@@ -15,7 +15,7 @@ const enhancementOptionSchema = new mongoose.Schema({
       "Video Denoising",
       "Face Enhancement",
       "Color Enhancement",
-      "SDR to HDR",
+      "SDR → HDR Conversion",
       "Video Upscaling"
     ],
   },

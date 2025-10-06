@@ -22,6 +22,7 @@ export const getR2SignedUrl = async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const { fileName, fileType, usingFreeConversion, cost } = req.body;
+console.log("cost is ", cost);
 
     if (!fileName || !fileType) {
       return res.status(400).json({ error: 'Missing fileName or fileType' });
