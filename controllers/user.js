@@ -482,7 +482,7 @@ if (subscribeNewsletter === 'true') {
       body: JSON.stringify({
         email,
         name: `${firstName} ${lastName}`.trim(),
-        groups: ['160816159398036489'], // ✅ your group ID
+        groups: ['167677175213852088'], // ✅ your group ID
       }),
     });
 
@@ -984,7 +984,7 @@ export const toggleNewsletter = async (req, res, next) => {
           body: JSON.stringify({
             email: user.email,
             name: fullName,
-            groups: ['160816159398036489'], // ✅ Replace with your group ID
+            groups: ['167677175213852088'], // ✅ Replace with your group ID
           }),
         });
 
@@ -1049,7 +1049,7 @@ export const subscribeNewsletter = async (req, res, next) => {
       body: JSON.stringify({
         email,
         name,
-        groups: ['160816159398036489'],
+        groups: ['167677175213852088'],
       }),
     });
 
