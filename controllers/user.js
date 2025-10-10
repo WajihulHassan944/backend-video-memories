@@ -106,7 +106,7 @@ export const appleAuth = async (req, res, next) => {
     if (user) {
       if (!user.verified) {
         return res.redirect(
-          `https://frontend-3d-exclusive.vercel.app/login?error=AccountNotVerified`
+          `https://frontend-video-memories.vercel.app/login?error=AccountNotVerified`
         );
       }
 
@@ -117,7 +117,7 @@ export const appleAuth = async (req, res, next) => {
   `Welcome back, ${user.firstName}`,
   200,
   {},
-  "https://frontend-3d-exclusive.vercel.app/upload?login=success"
+  "https://frontend-video-memories.vercel.app/upload?login=success"
 );
     }
 
@@ -163,12 +163,12 @@ export const appleAuth = async (req, res, next) => {
   `Welcome ${user.firstName}`,
   201,
   {},
-  "https://frontend-3d-exclusive.vercel.app/upload?signup=success"
+  "https://frontend-video-memories.vercel.app/upload?signup=success"
 );
   } catch (error) {
     console.error("Apple Auth Error:", error);
     return res.redirect(
-      `https://frontend-3d-exclusive.vercel.app/login?error=AppleAuthFailed`
+      `https://frontend-video-memories.vercel.app/login?error=AppleAuthFailed`
     );
   }
 };
@@ -575,16 +575,16 @@ export const verifyEmail = async (req, res, next) => {
     if (!user) return next(new ErrorHandler("Invalid or expired verification link", 400));
 
     if (user.verified) {
-      return res.redirect("https://frontend-3d-exclusive.vercel.app/status?verified=already");
+      return res.redirect("https://frontend-video-memories.vercel.app/status?verified=already");
     }
 
     user.verified = true;
     await user.save();
 
-    res.redirect("https://frontend-3d-exclusive.vercel.app/status?verified=success");
+    res.redirect("https://frontend-video-memories.vercel.app/status?verified=success");
   } catch (error) {
     console.error(error);
-    res.redirect("https://frontend-3d-exclusive.vercel.app/status?verified=fail");
+    res.redirect("https://frontend-video-memories.vercel.app/status?verified=fail");
   }
 };
 
@@ -746,7 +746,7 @@ export const resetPasswordRequestEmail = async (req, res, next) => {
       expiresIn: "1h",
     });
 
-    const resetLink = `https://frontend-3d-exclusive.vercel.app/reset-password?token=${resetToken}`;
+    const resetLink = `https://frontend-video-memories.vercel.app/reset-password?token=${resetToken}`;
 
     // 3. Compose email using your branded template
     const resetHtml = generateEmailTemplate({
@@ -1095,7 +1095,7 @@ export const unsubscribeNewsletter = async (req, res, next) => {
     const { email } = req.query;
 
     if (!email || !validator.isEmail(email)) {
-      return res.redirect('https://frontend-3d-exclusive.vercel.app/newsletter?unsubscribed=failure');
+      return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=failure');
     }
 
     const response = await fetch(`https://connect.mailerlite.com/api/subscribers/${email}`, {
@@ -1108,14 +1108,14 @@ export const unsubscribeNewsletter = async (req, res, next) => {
 
     if (!response.ok) {
       console.error('Unsubscribe failed:', await response.json());
-      return res.redirect('https://frontend-3d-exclusive.vercel.app/newsletter?unsubscribed=failure');
+      return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=failure');
     }
 
-    return res.redirect('https://frontend-3d-exclusive.vercel.app/newsletter?unsubscribed=success');
+    return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=success');
 
   } catch (error) {
     console.error('Unsubscribe error:', error);
-    return res.redirect('https://frontend-3d-exclusive.vercel.app/newsletter?unsubscribed=failure');
+    return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=failure');
   }
 };
 export const promoteAdmins = async (req, res) => {
