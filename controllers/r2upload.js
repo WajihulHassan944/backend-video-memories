@@ -248,15 +248,28 @@ if (status && (!plainUrl || status !== "completed")) {
 
       const user = video.user;
 
-      const emailHtml = generateEmailTemplate({
-        firstName: user.firstName || "there",
-        subject: "🚀 Your Video is Ready!",
-        content: `
-          <p style="color:#fff;">Hi ${user.firstName},</p>
-          <p style="color:#fff;">Your video <strong>${video.originalFileName}</strong> has been successfully converted to 3D.</p>
-          <p style="color:#fff;">You can <a href="${signedUrl}" style="color:#ff8c2f;">click here</a> to download it.</p>
-        `,
-      });
+const enhancementsList = video.conversionFormat
+  ?.map((f) => `<li>${f.type} – <strong>${f.selectedOption}</strong></li>`)
+  .join("") || "";
+
+const emailHtml = generateEmailTemplate({
+  firstName: user.firstName || "there",
+  subject: "🚀 Your Enhanced Video is Ready!",
+  content: `
+    <p style="color:#fff;">Hi ${user.firstName},</p>
+    <p style="color:#fff;">Your video <strong>${video.originalFileName}</strong> has been successfully enhanced.</p>
+    <p style="color:#fff;">Here’s what we’ve applied for you:</p>
+    <ul style="color:#ff8c2f; list-style: disc; padding-left: 20px;">
+      ${enhancementsList}
+    </ul>
+    <p style="color:#fff;">Total enhancements: <strong>${video.totalEnhancementsSelected}</strong></p>
+    <p style="color:#fff;">Total credits used: <strong>${video.totalCreditsUsed}</strong></p>
+    <p style="color:#fff;">You can <a href="${signedUrl}" style="color:#ff8c2f;">click here</a> to download your enhanced video.</p>
+    <br/>
+    <p style="color:#aaa;">Thank you for using <strong>Video Memories</strong> 🎬</p>
+  `,
+});
+
 
       await transporter.sendMail({
         from: `"Video Memories" <${process.env.ADMIN_EMAIL}>`,
