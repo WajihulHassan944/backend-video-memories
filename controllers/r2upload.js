@@ -7,6 +7,7 @@ import { transporter } from '../utils/mailer.js';
 import generateEmailTemplate from '../utils/emailTemplate.js';
 import { Wallet } from '../models/wallet.js';
 import { pusher } from '../utils/pusher.js';
+import { Invoice } from '../models/invoice.js';
 const r2Client = new S3Client({
   endpoint: process.env.R2_ENDPOINT,
   region: 'auto',
@@ -439,5 +440,111 @@ export const resendVideoNotification = async (req, res) => {
   } catch (err) {
     console.error("❌ Error resending video notification:", err);
     return res.status(500).json({ error: "Server error while resending notification" });
+  }
+};
+
+
+
+
+export const getConversionDashboard = async (req, res) => {
+  try {
+    // 1️⃣ Conversion Stats
+    const totalConversions = await Video.countDocuments();
+    const completed = await Video.countDocuments({ status: "completed" });
+    const processing = await Video.countDocuments({ status: "processing" });
+    const queued = await Video.countDocuments({ status: { $in: ["queued", "pending", "uploaded"] } });
+    const failed = await Video.countDocuments({ status: "failed" });
+
+    const successRate =
+      totalConversions > 0
+        ? ((completed / totalConversions) * 100).toFixed(1)
+        : 0;
+
+    const stats = {
+      inProgress: processing,
+      queued,
+      completed,
+      failed,
+      completionRate: `${successRate}%`,
+    };
+
+    // 2️⃣ Recent Orders (latest 10 invoices)
+    const invoices = await Invoice.find({})
+      .populate("user") // get customer info
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    const recentOrders = invoices.map((inv, idx) => {
+      const customerName = `${inv.user?.firstName || ""} ${inv.user?.lastName || ""}`.trim();
+
+      // Order ID (ORD-001 style)
+      const orderId = `ORD-${String(idx + 1).padStart(3, "0")}`;
+
+      // total credits in this order
+      const totalCredits =
+        inv.credits?.reduce((sum, c) => sum + (c.credits || 0), 0) || 0;
+
+      // Date/time handling
+     // Date/time handling
+const issuedAt = inv.issuedAt || inv.createdAt;
+let timeAgo = "-";
+
+if (issuedAt) {
+  const diffMs = Date.now() - new Date(issuedAt).getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 60) {
+    timeAgo = `${diffMins} min ago`;
+  } else if (diffMins < 1440) {
+    const hours = Math.floor(diffMins / 60);
+    timeAgo = `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  } else if (diffMins < 43200) { // < 30 days
+    const days = Math.floor(diffMins / 1440);
+    timeAgo = `${days} day${days > 1 ? "s" : ""} ago`;
+  } else if (diffMins < 525600) { // < 12 months
+    const months = Math.floor(diffMins / 43200);
+    timeAgo = `${months} month${months > 1 ? "s" : ""} ago`;
+  } else {
+    const years = Math.floor(diffMins / 525600);
+    timeAgo = `${years} year${years > 1 ? "s" : ""} ago`;
+  }
+}
+
+
+      return {
+        _id: inv._id,
+        orderId,
+        customer: customerName,
+        email: inv.user?.email || "",
+        company: inv.billingInfo?.companyName || "",
+        vatNumber: inv.billingInfo?.vatNumber || "",
+        street: inv.billingInfo?.street || "",
+        postalCode: inv.billingInfo?.postalCode || "",
+        city: inv.billingInfo?.city || "",
+        country: inv.billingInfo?.countryName || "",
+        amount: inv.total ? inv.total.toFixed(2) : "0.00",
+        currency: inv.currency || "€",
+        credits: totalCredits,
+        status: inv.status || "Completed",
+        method: inv.method || "Manual order",
+        notes: inv.notes || "",
+        timeAgo,
+      };
+    }).reverse();
+
+    // 3️⃣ Final response
+    return res.status(200).json({
+      success: true,
+      dashboard: {
+        stats,
+        recentOrders,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error fetching conversion dashboard:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch conversion dashboard",
+    });
   }
 };

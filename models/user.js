@@ -23,6 +23,11 @@ const schema = new mongoose.Schema({
     type: String,
     select: false,
   },
+    lastLogin: {
+    type: Date,
+    default: null,
+  },
+
   hasFreeConversion: {
   type: Boolean,
   default: true, // one-time gift on registration
@@ -42,7 +47,7 @@ newsletterOptIn: {
 },
   role: {
     type: [String],
-    enum: ["user", "admin"],
+    enum: ["user", "admin", "moderator"],
     default: ["user"],
   },
   verified: {
@@ -53,6 +58,23 @@ newsletterOptIn: {
     type: Date,
     default: Date.now,
   },
+  
+  address: {
+    street: { type: String },
+    city: { type: String },
+    postalCode: { type: String },
+    country: { type: String },
+  },
+
+  companyName: { type: String },
+  vatNumber: { type: String },
+
+  status: {
+    type: String,
+    enum: ["active", "inactive", "suspended"],
+    default: "active",
+  },
+
   
 });
 export const User = mongoose.model("User", schema);

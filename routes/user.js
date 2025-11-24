@@ -1,7 +1,8 @@
 import express from "express";
-import { appleAuth,  deleteUserById, getAllUsers, getMyProfile, getUserById, googleLogin, googleRegister, handleContactForm, login, logout, promoteAdmins, register,  resetPasswordConfirm, resetPasswordRequest,  resetPasswordRequestEmail,  subscribeNewsletter,  toggleNewsletter,  unsubscribeNewsletter,  updateProfile, verifyEmail } from "../controllers/user.js";
+import { appleAuth,  deleteUserById, getAllUsers, getAllUsersDetailed, getMyProfile, getUserById, getUserStats, googleLogin, googleRegister, handleContactForm, login, logout, promoteAdmins, register,  resetPasswordConfirm, resetPasswordRequest,  resetPasswordRequestEmail,  subscribeNewsletter,  toggleNewsletter,  unsubscribeNewsletter,  updateProfile, updateUserPassword, verifyEmail } from "../controllers/user.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 import upload from "../middlewares/upload.js";
+import { getAdminStats } from "../controllers/liveVisitors.js";
 
 const router = express.Router();
 
@@ -25,4 +26,13 @@ router.post('/toggle-newsletter', isAuthenticated, toggleNewsletter);
 router.post('/subscribe', subscribeNewsletter);
 router.get('/unsubscribe', unsubscribeNewsletter);
 router.get("/promote-admins", promoteAdmins);
+
+
+router.get("/stats", isAuthenticated,getUserStats);
+router.get("/detailed", isAuthenticated, getAllUsersDetailed);
+router.get("/dashboard-stats",  getAdminStats);
+
+router.put("/update-password", updateUserPassword);
+
+
 export default router;

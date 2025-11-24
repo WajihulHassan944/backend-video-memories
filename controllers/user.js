@@ -109,6 +109,8 @@ export const appleAuth = async (req, res, next) => {
           `https://frontend-video-memories.vercel.app/login?error=AccountNotVerified`
         );
       }
+user.lastLogin = new Date();
+    await user.save({ validateBeforeSave: false });
 
       // Set cookie before redirect
       return sendCookie(
@@ -276,6 +278,8 @@ export const googleLogin = async (req, res, next) => {
     if (!user.verified) {
       return next(new ErrorHandler("Account is not verified.", 403));
     }
+user.lastLogin = new Date();
+    await user.save({ validateBeforeSave: false });
 
     sendCookie(user, res, `Welcome back, ${user.firstName}`, 200, {
       user: {
@@ -383,6 +387,8 @@ export const login = async (req, res, next) => {
     if (!isMatch) {
       return next(new ErrorHandler("Invalid Email or Password", 400));
     }
+ user.lastLogin = new Date();
+    await user.save({ validateBeforeSave: false });
 
 
     const cleanedUser = {
@@ -419,6 +425,8 @@ export const getAllUsers = async (req, res, next) => {
 
 
 
+
+
 export const register = async (req, res, next) => {
   try {
     const {
@@ -428,7 +436,9 @@ export const register = async (req, res, next) => {
       password,
       country,
       subscribeNewsletter,
-    } = req.body;
+       role,            
+  addedByAdmin,      
+} = req.body;
     const existingUser = await User.findOne({ email });
 
     
@@ -466,6 +476,8 @@ export const register = async (req, res, next) => {
       country,
       profileUrl,
        newsletterOptIn: subscribeNewsletter === 'true',
+        ...(role ? { role: [role] } : {}), // ✅ use provided role if any
+         ...(addedByAdmin ? { verified: true } : {}),
     };
 
    
@@ -513,9 +525,32 @@ if (subscribeNewsletter === 'true') {
     });
 
 
+if (addedByAdmin) {
+  await transporter.sendMail({
+    from: `"Video Memories" <${process.env.ADMIN_EMAIL}>`,
+    to: email,
+    subject: "You’ve been added to Video Memories",
+    html: generateEmailTemplate({
+      firstName,
+      subject: "You’ve been added to Video Memories",
+      content: `
+        <p style="margin-bottom:16px;">Hello ${firstName},</p>
+        <p style="margin-bottom:16px;">An admin has created an account for you on <strong>Video Memories</strong>.</p>
+        <p style="margin-bottom:16px;">You can now log in using the following credentials:</p>
+        <ul style="margin-bottom:16px; line-height:1.6;">
+          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Password:</strong> ${password}</li>
+        </ul>
+        <p style="margin-bottom:16px;">We recommend changing your password after your first login for security purposes.</p>
+        <p style="font-size:14px; color:#666;">If this was unexpected, please contact our support.</p>
+      `,
+    }),
+  });
+} else {
 
 
    if (user) {
+
   
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
   const verificationLink = `https://backend-video-memories.vercel.app/api/users/verify-email?token=${token}`;
@@ -543,7 +578,7 @@ await transporter.sendMail({
 
 }
 
-
+}
     res.status(201).json({
       success: true,
       message: "Registration successful. Please verify your email.",
@@ -563,6 +598,7 @@ await transporter.sendMail({
     next(error);
   }
 };
+
 
 
 
@@ -815,6 +851,7 @@ export const resetPasswordConfirm = async (req, res, next) => {
 };
 
 export const updateProfile = async (req, res, next) => {
+  console.log(req.body);
   try {
     const {
       userId,
@@ -822,6 +859,11 @@ export const updateProfile = async (req, res, next) => {
       lastName,
       email,
       country,
+      role,
+      address,
+      companyName,
+      vatNumber,
+      status,
     } = req.body;
 
     if (!userId) {
@@ -831,14 +873,35 @@ export const updateProfile = async (req, res, next) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Dynamically update only provided fields
+    // ✅ Dynamically update only provided fields
     if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
+    if (lastName !== undefined) user.lastName = lastName;
     if (email) user.email = email;
     if (country) user.country = country;
 
-   
-    // Handle image upload if file provided
+    // ✅ Address info
+    if (address) {
+      user.address = {
+        street: address.street || user.address?.street,
+        city: address.city || user.address?.city,
+        postalCode: address.postalCode || user.address?.postalCode,
+        country: address.country || user.address?.country,
+      };
+    }
+
+    // ✅ Business info
+    if (companyName) user.companyName = companyName;
+    if (vatNumber) user.vatNumber = vatNumber;
+
+    // ✅ Status update (active/inactive/suspended)
+    if (status) user.status = status;
+
+    // ✅ Role handling
+ if (role) {
+  user.role = Array.isArray(role) ? role : [role];
+}
+
+    // ✅ Handle image upload if file provided
     if (req.file) {
       if (user.profileUrl && user.profileUrl.includes("cloudinary.com")) {
         const publicId = user.profileUrl.split("/").pop().split(".")[0];
@@ -849,8 +912,8 @@ export const updateProfile = async (req, res, next) => {
         new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
             {
-              folder: 'user_profiles',
-              resource_type: 'image',
+              folder: "user_profiles",
+              resource_type: "image",
             },
             (error, result) => {
               if (result) resolve(result);
@@ -871,9 +934,8 @@ export const updateProfile = async (req, res, next) => {
       message: "Profile updated successfully",
       user,
     });
-
   } catch (error) {
-    console.error('Update error:', error);
+    console.error("Update error:", error);
     next(error);
   }
 };
@@ -1142,5 +1204,133 @@ export const promoteAdmins = async (req, res) => {
       success: false,
       error: "Internal server error",
     });
+  }
+};
+
+
+
+
+export const getUserStats = async (req, res, next) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ verified: true });
+    const inactiveUsers = totalUsers - activeUsers;
+    const administrators = await User.countDocuments({ role: { $in: ["admin"] } });
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        administrators,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+
+export const getAllUsersDetailed = async (req, res, next) => {
+  try {
+    // ✅ Fetch all users sorted by newest first
+    const users = await User.find().sort({ createdAt: -1 });
+
+    // ✅ Fetch all wallets once for performance
+    const wallets = await Wallet.find();
+    const walletMap = new Map(wallets.map((w) => [w.userId.toString(), w]));
+
+    // ✅ Merge user + wallet data
+    const userDetails = users.map((user) => {
+      const wallet = walletMap.get(user._id.toString());
+
+      return {
+        id: user._id,
+        name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        email: user.email,
+        role: user.role,
+        profileUrl: user.profileUrl || null,
+
+        // ✅ Address info
+        address: {
+          street: user.address?.street || "",
+          city: user.address?.city || "",
+          postalCode: user.address?.postalCode || "",
+          country: user.address?.country || "",
+        },
+
+        // ✅ Business info
+        companyName: user.companyName || "",
+        vatNumber: user.vatNumber || "",
+
+        // ✅ Account status (uses your enum)
+        status: user.status || "active",
+        emailVerified: user.verified ? "Verified" : "Not Verified",
+
+        // ✅ Wallet balance & activity
+        credits: wallet ? wallet.balance : 0,
+        lastLogin: user.lastLogin
+          ? user.lastLogin.toISOString().replace("T", " ").substring(0, 16)
+          : "Never",
+
+        // ✅ Timestamps
+        createdAt: user.createdAt
+          ? user.createdAt.toISOString().replace("T", " ").substring(0, 16)
+          : null,
+        updatedAt: user.updatedAt
+          ? user.updatedAt.toISOString().replace("T", " ").substring(0, 16)
+          : null,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      users: userDetails,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    next(error);
+  }
+};
+
+
+
+
+
+
+export const updateUserPassword = async (req, res) => {
+  try {
+    console.log(req.body);
+    const { userId, newPassword } = req.body;
+
+    if (!userId || !newPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing userId or newPassword." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // ✅ Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully.",
+    });
+  } catch (error) {
+    console.error("Password update error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };

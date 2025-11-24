@@ -7,6 +7,12 @@ import couponRouter from "./routes/coupons.js";
 import cartRouter from "./routes/cart.js";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middlewares/error.js";
+import mediaRouter from "./routes/frontend/media.js";
+import blogsRouter from "./routes/frontend/blogs.js";
+import reviewsRouter from "./routes/frontend/reviews.js";
+import productRouter from "./routes/frontend/product.js";
+
+import liveVisitorsRouter from "./routes/liveVisitors.js";
 import cors from "cors";
 
 export const app = express();
@@ -33,8 +39,15 @@ app.use("/api/wallet", walletRouter);
 app.use('/api/b2', uploadRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/coupons', couponRouter);
+app.use("/api/live-visitors", liveVisitorsRouter);
+app.use("/api/media", mediaRouter);
+app.use('/api/blogs', blogsRouter);
+app.use("/api/reviews", reviewsRouter);
+app.use('/api/products', productRouter);
+
+
 app.get("/", (req, res) => {
-  res.send("Nice working backend by Wajih ul Hassan for Xclusive3d.com");
+  res.send("Nice working backend by Wajih ul Hassan for Video memories");
 });
 
 // Using Error Middleware
