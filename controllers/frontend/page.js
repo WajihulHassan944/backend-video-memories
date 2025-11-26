@@ -64,6 +64,7 @@ parsedSections = parsedSections.map((sec) => ({
         cardId: card.cardId || uuidv4(),
         title: card.title || "",
         description: card.description || "",
+         subDescription: card.subDescription || "",
         image: card.image || "",
       }))
     : [],

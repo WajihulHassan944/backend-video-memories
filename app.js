@@ -11,6 +11,7 @@ import mediaRouter from "./routes/frontend/media.js";
 import blogsRouter from "./routes/frontend/blogs.js";
 import reviewsRouter from "./routes/frontend/reviews.js";
 import productRouter from "./routes/frontend/product.js";
+import pagesRouter from "./routes/frontend/page.js";
 
 import liveVisitorsRouter from "./routes/liveVisitors.js";
 import cors from "cors";
@@ -44,6 +45,7 @@ app.use("/api/media", mediaRouter);
 app.use('/api/blogs', blogsRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use('/api/products', productRouter);
+app.use('/api/pages', pagesRouter);
 
 
 app.get("/", (req, res) => {
