@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:3000", "http://localhost:3001", "https://frontend-video-memories.vercel.app", "http://frontend-video-memories.vercel.app"],
+    origin: [process.env.FRONTEND_URL, "http://localhost:3000", "http://localhost:3001", "https://frontend-video-memories.vercel.app", "http://frontend-video-memories.vercel.app", "https://videomemories.eu", "https://www.videomemories.eu"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })
