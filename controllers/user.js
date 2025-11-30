@@ -106,7 +106,7 @@ export const appleAuth = async (req, res, next) => {
     if (user) {
       if (!user.verified) {
         return res.redirect(
-          `https://frontend-video-memories.vercel.app/login?error=AccountNotVerified`
+          `https://www.videomemories.eu/login?error=AccountNotVerified`
         );
       }
 user.lastLogin = new Date();
@@ -119,7 +119,7 @@ user.lastLogin = new Date();
   `Welcome back, ${user.firstName}`,
   200,
   {},
-  "https://frontend-video-memories.vercel.app/upload?login=success"
+  "https://www.videomemories.eu/upload?login=success"
 );
     }
 
@@ -165,12 +165,12 @@ user.lastLogin = new Date();
   `Welcome ${user.firstName}`,
   201,
   {},
-  "https://frontend-video-memories.vercel.app/upload?signup=success"
+  "https://www.videomemories.eu/upload?signup=success"
 );
   } catch (error) {
     console.error("Apple Auth Error:", error);
     return res.redirect(
-      `https://frontend-video-memories.vercel.app/login?error=AppleAuthFailed`
+      `https://www.videomemories.eu/login?error=AppleAuthFailed`
     );
   }
 };
@@ -611,16 +611,16 @@ export const verifyEmail = async (req, res, next) => {
     if (!user) return next(new ErrorHandler("Invalid or expired verification link", 400));
 
     if (user.verified) {
-      return res.redirect("https://frontend-video-memories.vercel.app/status?verified=already");
+      return res.redirect("https://www.videomemories.eu/status?verified=already");
     }
 
     user.verified = true;
     await user.save();
 
-    res.redirect("https://frontend-video-memories.vercel.app/status?verified=success");
+    res.redirect("https://www.videomemories.eu/status?verified=success");
   } catch (error) {
     console.error(error);
-    res.redirect("https://frontend-video-memories.vercel.app/status?verified=fail");
+    res.redirect("https://www.videomemories.eu/status?verified=fail");
   }
 };
 
@@ -782,7 +782,7 @@ export const resetPasswordRequestEmail = async (req, res, next) => {
       expiresIn: "1h",
     });
 
-    const resetLink = `https://frontend-video-memories.vercel.app/reset-password?token=${resetToken}`;
+    const resetLink = `https://www.videomemories.eu/reset-password?token=${resetToken}`;
 
     // 3. Compose email using your branded template
     const resetHtml = generateEmailTemplate({
@@ -1157,7 +1157,7 @@ export const unsubscribeNewsletter = async (req, res, next) => {
     const { email } = req.query;
 
     if (!email || !validator.isEmail(email)) {
-      return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=failure');
+      return res.redirect('https://www.videomemories.eu/newsletter?unsubscribed=failure');
     }
 
     const response = await fetch(`https://connect.mailerlite.com/api/subscribers/${email}`, {
@@ -1170,14 +1170,14 @@ export const unsubscribeNewsletter = async (req, res, next) => {
 
     if (!response.ok) {
       console.error('Unsubscribe failed:', await response.json());
-      return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=failure');
+      return res.redirect('https://www.videomemories.eu/newsletter?unsubscribed=failure');
     }
 
-    return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=success');
+    return res.redirect('https://www.videomemories.eu/newsletter?unsubscribed=success');
 
   } catch (error) {
     console.error('Unsubscribe error:', error);
-    return res.redirect('https://frontend-video-memories.vercel.app/newsletter?unsubscribed=failure');
+    return res.redirect('https://www.videomemories.eu/newsletter?unsubscribed=failure');
   }
 };
 export const promoteAdmins = async (req, res) => {
