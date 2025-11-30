@@ -120,6 +120,27 @@ export const saveR2Metadata = async (req, res) => {
       0
     );
 
+
+   // ✅ Estimate processing time dynamically based on resolution
+// Assume average video FPS = 30
+let renderFPS;
+
+// Extract numeric resolution value, e.g. "1080p" → 1080
+const resolution = parseInt(quality.replace(/\D/g, ''), 10);
+
+// Set FPS dynamically based on resolution range
+if (resolution <= 480) renderFPS = 18;         // SD (boosted a bit from 14 → 18)
+else if (resolution <= 720) renderFPS = 14;    // HD Ready (was 12 → now 14)
+else if (resolution <= 1080) renderFPS = 10;   // Full HD (correct as per instruction)
+else if (resolution <= 2160) renderFPS = 4;    // 4K (correct)
+else if (resolution <= 4320) renderFPS = 2;    // 8K (correct)
+else renderFPS = 1;                            // Above 8K → reduced slightly
+
+const totalFrames = lengthInSeconds * 30; // assuming 30fps video input
+const estimatedProcessingTime = ((totalFrames / renderFPS) * 1.15) / 60; // in minutes
+
+
+
     // ✅ Save to MongoDB
     const savedVideo = await Video.create({
       user: user._id,
@@ -133,6 +154,7 @@ export const saveR2Metadata = async (req, res) => {
       totalEnhancementsSelected,
       totalCreditsUsed,
       progress: 0,
+      estimatedProcessingTime,
     });
 
     // ✅ Send confirmation email

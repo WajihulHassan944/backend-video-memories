@@ -103,6 +103,14 @@ const videoSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  
+startedAt: {
+  type: Date,
+  default: null, // set when processing begins
+},
+
+estimatedProcessingTime: { type: Number }, // in seconds or minutes
+
   createdAt: {
     type: Date,
     default: Date.now,
